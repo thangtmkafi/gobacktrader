@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>gobacktrader — Algorithmic Trading Framework for Go</title>
+  <meta name="description" content="A powerful algorithmic trading backtesting and live trading framework for Go. Inspired by Backtrader. 10 indicators, 5 analyzers, 5 live feed transports.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ═══ Navigation ═══ -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#home" class="nav-logo">🚀 gobacktrader</a>
+    <ul class="nav-links">
+      <li><a href="#home" data-page="home">Home</a></li>
+      <li><a href="#getting-started" data-page="getting-started">Getting Started</a></li>
+      <li><a href="#concepts" data-page="concepts">Concepts</a></li>
+      <li><a href="#indicators" data-page="indicators">Indicators</a></li>
+      <li><a href="#analyzers" data-page="analyzers">Analyzers</a></li>
+      <li><a href="#live-feeds" data-page="live-feeds">Live Feeds</a></li>
+    </ul>
+    <a href="https://github.com/thangtmkafi/gobacktrader" class="nav-github" target="_blank">
+      <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+      GitHub
+    </a>
+  </div>
+</nav>
+
+<main>
+
+<!-- ═══════════════════ HOME PAGE ═══════════════════ -->
+<div id="page-home" class="page active">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-badge">✨ Go-native · Zero CGo · Production-ready</div>
+    <h1>Algorithmic Trading<br><span class="gradient">Framework for Go</span></h1>
+    <p>A complete ecosystem for developing, backtesting, and paper-trading strategies. Inspired by Python's Backtrader — reimagined for Go's performance and concurrency.</p>
+    <div class="hero-buttons">
+      <a href="#getting-started" data-page="getting-started" class="btn btn-primary">Get Started →</a>
+      <a href="https://github.com/thangtmkafi/gobacktrader" target="_blank" class="btn btn-secondary">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        View on GitHub
+      </a>
+    </div>
+
+    <div class="install-bar">
+      <span class="dollar">$</span> go get github.com/thangtmkafi/gobacktrader
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features container">
+    <div class="section-header">
+      <h2>Everything You Need</h2>
+      <p>From CSV backtesting to real-time WebSocket trading — in one framework.</p>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon cyan">📊</div>
+        <h3>Core Engine</h3>
+        <p>Cerebro orchestrator, simulated Broker with Market/Limit/Stop/StopLimit orders, Position tracking, Trade PnL with commission schemes.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon purple">📈</div>
+        <h3>10 Technical Indicators</h3>
+        <p>SMA, EMA, WMA, DEMA, TEMA, RSI, MACD, Stochastic, ATR, Bollinger Bands. Pre-computed at init time for maximum backtest performance.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon green">🔍</div>
+        <h3>5 Performance Analyzers</h3>
+        <p>Returns, Sharpe Ratio, Max Drawdown, Trade Analyzer (win rate, profit factor), and SQN — automatically computed after every run.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon orange">⚡</div>
+        <h3>5 Live Feed Transports</h3>
+        <p>WebSocket, REST API polling, NATS pub/sub, Redis Streams, and Kafka consumers. Same strategy code works for backtest and live.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon pink">🎯</div>
+        <h3>Position Sizing</h3>
+        <p>FixedSizer, PercentSizer (% of portfolio), AllInSizer. Plug into your strategy for automated position management.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon cyan">🧪</div>
+        <h3>Battle-Tested</h3>
+        <p>39 unit and integration tests across 7 packages. Every indicator, analyzer, and feed transport is verified with hand-checked values.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Example -->
+  <section class="container" style="padding: 3rem 2rem;">
+    <div class="section-header">
+      <h2>Simple, Powerful API</h2>
+      <p>Write a complete strategy in under 50 lines of Go.</p>
+    </div>
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span>main.go</span>
+      </div>
+      <pre><code>c := engine.NewCerebro()
+c.SetCash(100_000)
+c.SetCommission(engine.PercentCommission{Percent: 0.001})
+c.AddCSV(feeds.DefaultYahooConfig("AAPL.csv"))
+c.AddStrategy(func() engine.Strategy { return &MySMACross{} })
+
+// Attach analyzers
+c.AddAnalyzer(&analyzers.SharpeRatio{AnnualisationFactor: 252})
+c.AddAnalyzer(&analyzers.DrawDown{})
+c.AddAnalyzer(&analyzers.TradeAnalyzer{})
+
+results, _ := c.Run()
+fmt.Printf("Final Value: $%.2f\n", results[0].FinalValue)</code></pre>
+    </div>
+  </section>
+</div>
+
+
+<!-- ═══════════════════ GETTING STARTED ═══════════════════ -->
+<div id="page-getting-started" class="page">
+  <div class="container doc-layout">
+    <aside class="doc-sidebar">
+      <ul>
+        <li class="sidebar-label">Getting Started</li>
+        <li><a href="#gs-install">Installation</a></li>
+        <li><a href="#gs-first">Your First Backtest</a></li>
+        <li><a href="#gs-strategy">Writing a Strategy</a></li>
+        <li><a href="#gs-indicators">Adding Indicators</a></li>
+        <li><a href="#gs-analyzers">Analyzing Results</a></li>
+        <li><a href="#gs-live">Going Live</a></li>
+      </ul>
+    </aside>
+    <div class="doc-content">
+      <h1>Getting Started</h1>
+      <p>Get up and running with gobacktrader in 5 minutes.</p>
+
+      <h2 id="gs-install">Installation</h2>
+      <p>gobacktrader requires <strong>Go 1.21+</strong>. Install via <code>go get</code>:</p>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>terminal</span></div>
+<pre><code>go get github.com/thangtmkafi/gobacktrader</code></pre></div>
+
+      <h2 id="gs-first">Your First Backtest</h2>
+      <p>The minimum viable backtest needs: a data feed, a strategy, and Cerebro to run it.</p>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>main.go</span></div>
+<pre><code>package main
+
+import (
+    "fmt"
+    "github.com/thangtmkafi/gobacktrader/engine"
+    "github.com/thangtmkafi/gobacktrader/feeds"
+)
+
+// BuyAndHold buys on the first bar and holds forever.
+type BuyAndHold struct {
+    ctx    *engine.StrategyContext
+    bought bool
+}
+
+func (s *BuyAndHold) Init(ctx *engine.StrategyContext) { s.ctx = ctx }
+
+func (s *BuyAndHold) Next() {
+    if !s.bought {
+        s.ctx.Buy(100)   // buy 100 shares
+        s.bought = true
+    }
+}
+
+func main() {
+    c := engine.NewCerebro()
+    c.SetCash(100_000)
+    c.AddCSV(feeds.DefaultYahooConfig("AAPL.csv"))
+    c.AddStrategy(func() engine.Strategy { return &BuyAndHold{} })
+
+    results, err := c.Run()
+    if err != nil { panic(err) }
+
+    fmt.Printf("Starting: $%.2f\n", results[0].StartingCash)
+    fmt.Printf("Final:    $%.2f\n", results[0].FinalValue)
+}</code></pre></div>
+
+      <div class="info-box tip">
+        <strong>💡 Data Format</strong>
+        <code>DefaultYahooConfig</code> expects Yahoo Finance CSV format: <code>Date,Open,High,Low,Close,Adj Close,Volume</code>
+      </div>
+
+      <h2 id="gs-strategy">Writing a Strategy</h2>
+      <p>A strategy implements the <code>engine.Strategy</code> interface:</p>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>strategy.go</span></div>
+<pre><code>type Strategy interface {
+    Init(ctx *StrategyContext)  // called once before the loop
+    Next()                      // called every bar
+}
+
+// Optional interfaces:
+type NotifyOrderer interface {
+    NotifyOrder(o *Order)       // called when order status changes
+}
+type NotifyTrader interface {
+    NotifyTrade(t *Trade)       // called when a trade opens/closes
+}</code></pre></div>
+      <p>The <code>StrategyContext</code> gives you access to:</p>
+      <ul>
+        <li><code>ctx.Data()</code> — the live (bar-by-bar) DataSeries</li>
+        <li><code>ctx.PreloadedData()</code> — all bars pre-loaded (for building indicators)</li>
+        <li><code>ctx.Buy(size)</code>, <code>ctx.Sell(size)</code>, <code>ctx.Close()</code> — trading helpers</li>
+        <li><code>ctx.GetPosition(data)</code> — current position for a data feed</li>
+        <li><code>ctx.GetCash()</code>, <code>ctx.GetValue()</code> — portfolio state</li>
+      </ul>
+
+      <h2 id="gs-indicators">Adding Indicators</h2>
+      <p>Build indicators in <code>Init()</code> using the pre-loaded data series:</p>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>strategy.go</span></div>
+<pre><code>func (s *MyStrategy) Init(ctx *engine.StrategyContext) {
+    s.ctx = ctx
+    data := ctx.PreloadedData()  // all bars available
+    s.sma  = indicators.NewSMA(data, 20)
+    s.rsi  = indicators.NewRSI(data, 14)
+    s.macd = indicators.NewMACD(data, 12, 26, 9)
+}
+
+func (s *MyStrategy) Next() {
+    sma := s.sma.Line().Get(0)   // current bar's SMA
+    rsi := s.rsi.Line().Get(0)   // current RSI
+    if rsi < 30 && sma > 0 {
+        s.ctx.Buy(10)
+    }
+}</code></pre></div>
+
+      <div class="info-box note">
+        <strong>📝 Why PreloadedData?</strong>
+        Indicators pre-compute their entire output at construction time. <code>ctx.Data()</code> is empty during <code>Init()</code> (bars haven't been fed yet), so use <code>ctx.PreloadedData()</code> which has all bars already loaded.
+      </div>
+
+      <h2 id="gs-analyzers">Analyzing Results</h2>
+      <p>Attach analyzers before <code>Run()</code> — they're computed automatically:</p>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>main.go</span></div>
+<pre><code>ret := &analyzers.Returns{}
+c.AddAnalyzer(ret)
+c.AddAnalyzer(&analyzers.SharpeRatio{AnnualisationFactor: 252})
+c.AddAnalyzer(&analyzers.DrawDown{})
+
+c.Run()
+ret.Print()  // prints total return, PnL, best/worst trade</code></pre></div>
+
+      <h2 id="gs-live">Going Live</h2>
+      <p>Switch from backtesting to live with one line change:</p>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>live.go</span></div>
+<pre><code>feed := livefeeds.NewWebSocketFeed(livefeeds.WebSocketConfig{
+    URL:    "wss://stream.example.com/bars",
+    Symbol: "BTCUSDT",
+})
+c.AddData(feed)
+
+ctx, cancel := context.WithCancel(context.Background())
+defer cancel()
+
+// RunLive blocks until the feed ends or ctx is cancelled
+results, _ := c.RunLive(ctx)</code></pre></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════ CONCEPTS ═══════════════════ -->
+<div id="page-concepts" class="page">
+  <div class="container doc-layout">
+    <aside class="doc-sidebar">
+      <ul>
+        <li class="sidebar-label">Concepts</li>
+        <li><a href="#c-arch">Architecture</a></li>
+        <li><a href="#c-data">Data Model</a></li>
+        <li><a href="#c-engine">Engine Flow</a></li>
+        <li><a href="#c-orders">Order Types</a></li>
+        <li><a href="#c-commission">Commissions</a></li>
+      </ul>
+    </aside>
+    <div class="doc-content">
+      <h1>Core Concepts</h1>
+      <p>Understanding how gobacktrader works under the hood.</p>
+
+      <h2 id="c-arch">Architecture</h2>
+      <p>gobacktrader follows the same high-level design as Python's Backtrader, adapted to Go idioms:</p>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>architecture</span></div>
+<pre><code>┌─────────────────────────────────────────────────┐
+│                    Cerebro                       │
+│                                                  │
+│  ┌──────────┐   ┌──────────┐   ┌─────────────┐ │
+│  │ DataFeed │──▶│  Broker  │──▶│  Strategy   │ │
+│  │ CSV/WS/  │   │ Orders   │   │  Init()     │ │
+│  │ NATS/... │   │ Positions│   │  Next()     │ │
+│  └──────────┘   │ Trades   │   │  Notify*()  │ │
+│       │         └──────────┘   └─────────────┘ │
+│       ▼              │               ▲          │
+│  ┌──────────┐   ┌──────────┐   ┌──────────┐   │
+│  │Indicators│   │ Analyzers│   │  Sizers   │   │
+│  │ SMA, RSI │   │ Sharpe   │   │ Fixed, %  │   │
+│  │ MACD ... │   │ DrawDown │   │           │   │
+│  └──────────┘   └──────────┘   └──────────┘   │
+└─────────────────────────────────────────────────┘</code></pre></div>
+
+      <h2 id="c-data">Data Model</h2>
+      <p>Two core types power all data access:</p>
+      <h3><code>core.Line</code></h3>
+      <p>A time-indexed <code>float64</code> series with a cursor. Access values relative to the current bar:</p>
+      <ul>
+        <li><code>line.Get(0)</code> — current bar's value</li>
+        <li><code>line.Get(-1)</code> — previous bar</li>
+        <li><code>line.Get(-n)</code> — n bars ago</li>
+      </ul>
+
+      <h3><code>core.DataSeries</code></h3>
+      <p>A collection of 7 named Lines: <code>DateTime</code>, <code>Open</code>, <code>High</code>, <code>Low</code>, <code>Close</code>, <code>Volume</code>, <code>OpenInterest</code>.</p>
+      <p>Data feeds populate the series bar-by-bar. Indicators read from the Close line (or any line).</p>
+
+      <h2 id="c-engine">Engine Flow</h2>
+      <p>Here's what happens when you call <code>c.Run()</code>:</p>
+      <ol>
+        <li><strong>Load</strong> — all data feeds pre-read their data (CSV into memory)</li>
+        <li><strong>PreloadedData</strong> — a fully-populated DataSeries is built for indicator construction</li>
+        <li><strong>Init</strong> — each strategy's <code>Init(ctx)</code> is called (build indicators here)</li>
+        <li><strong>Main Loop</strong> — for each bar:
+          <ul>
+            <li>Feed advances (bar added to live DataSeries)</li>
+            <li>Broker processes pending orders against the new bar's prices</li>
+            <li>Equity snapshot is recorded to the equity curve</li>
+            <li>Order/trade notifications are delivered to strategies</li>
+            <li>Strategy <code>Next()</code> is called</li>
+          </ul>
+        </li>
+        <li><strong>Analyzers</strong> — each analyzer's <code>Analyze()</code> is called with the final RunResult</li>
+      </ol>
+
+      <h2 id="c-orders">Order Types</h2>
+      <table>
+        <thead><tr><th>Type</th><th>Execution</th><th>Use Case</th></tr></thead>
+        <tbody>
+          <tr><td><code>Market</code></td><td>Next bar's open price</td><td>Immediate entry/exit</td></tr>
+          <tr><td><code>Limit</code></td><td>When price reaches limit</td><td>Buy low / sell high</td></tr>
+          <tr><td><code>Stop</code></td><td>When price hits stop level</td><td>Breakout entries, stop-losses</td></tr>
+          <tr><td><code>StopLimit</code></td><td>Stop triggers a limit order</td><td>Controlled breakout entries</td></tr>
+          <tr><td><code>Close</code></td><td>Current bar's close price</td><td>End-of-day orders</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="c-commission">Commission Schemes</h2>
+      <table>
+        <thead><tr><th>Scheme</th><th>Formula</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td><code>PercentCommission</code></td><td>size × price × percent</td><td>0.1% per trade</td></tr>
+          <tr><td><code>FixedCommission</code></td><td>fixed amount per order</td><td>$5 per trade</td></tr>
+          <tr><td><code>ZeroCommission</code></td><td>no commission</td><td>Paper trading</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════ INDICATORS ═══════════════════ -->
+<div id="page-indicators" class="page">
+  <div class="container doc-layout">
+    <aside class="doc-sidebar">
+      <ul>
+        <li class="sidebar-label">Indicators</li>
+        <li><a href="#ind-overview">Overview</a></li>
+        <li><a href="#ind-trend">Trend</a></li>
+        <li><a href="#ind-momentum">Momentum</a></li>
+        <li><a href="#ind-volatility">Volatility</a></li>
+      </ul>
+    </aside>
+    <div class="doc-content">
+      <h1>Indicators Reference</h1>
+      <p>10 pre-built indicators covering trend, momentum, and volatility analysis.</p>
+
+      <h2 id="ind-overview">Overview</h2>
+      <p>All indicators follow the same pattern:</p>
+      <ol>
+        <li>Construct in <code>Init()</code> using <code>ctx.PreloadedData()</code></li>
+        <li>Read values in <code>Next()</code> via <code>.Line().Get(ago)</code></li>
+        <li>First <code>period-1</code> bars return <code>NaN</code> (not enough data)</li>
+      </ol>
+
+      <h2 id="ind-trend">Trend Indicators</h2>
+
+      <h3><code>SMA</code> — Simple Moving Average</h3>
+      <p>Arithmetic mean of the last N closes. The most basic trend filter.</p>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>usage</span></div>
+<pre><code>sma := indicators.NewSMA(data, 20)
+val := sma.Line().Get(0)  // current SMA(20)</code></pre></div>
+
+      <h3><code>EMA</code> — Exponential Moving Average</h3>
+      <p>Weighted average with exponential decay. <code>k = 2/(period+1)</code>. Seeded with SMA of first period values.</p>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>usage</span></div>
+<pre><code>ema := indicators.NewEMA(data, 12)
+// Also available: NewEMAOnLine(line, period) for chaining</code></pre></div>
+
+      <h3><code>WMA</code> — Weighted Moving Average</h3>
+      <p>Linearly weighted — recent bars have higher weights.</p>
+
+      <h3><code>DEMA</code> — Double EMA</h3>
+      <p>Formula: <code>2×EMA - EMA(EMA)</code>. Reduced lag vs standard EMA.</p>
+
+      <h3><code>TEMA</code> — Triple EMA</h3>
+      <p>Formula: <code>3×EMA - 3×EMA² + EMA³</code>. Minimal lag.</p>
+
+      <h2 id="ind-momentum">Momentum / Oscillators</h2>
+
+      <h3><code>RSI</code> — Relative Strength Index</h3>
+      <p>Wilder smoothing, output clamped to [0, 100]. Standard period: 14.</p>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>usage</span></div>
+<pre><code>rsi := indicators.NewRSI(data, 14)
+if rsi.Line().Get(0) < 30 {
+    // oversold condition
+}</code></pre></div>
+
+      <h3><code>MACD</code> — Moving Average Convergence/Divergence</h3>
+      <p>Three lines: MACD (fast EMA - slow EMA), Signal (EMA of MACD), Histogram (MACD - Signal).</p>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>usage</span></div>
+<pre><code>macd := indicators.NewMACD(data, 12, 26, 9)
+macdLine := macd.Line().Get(0)
+signal   := macd.Signal().Get(0)
+hist     := macd.Histogram().Get(0)</code></pre></div>
+
+      <h3><code>Stochastic</code> — Stochastic Oscillator</h3>
+      <p>%K and %D lines. <code>%K = (Close - LowestLow) / (HighestHigh - LowestLow) × 100</code>.</p>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>usage</span></div>
+<pre><code>stoch := indicators.NewStochastic(data, 14, 3)
+k := stoch.K().Get(0)   // %K line
+d := stoch.D().Get(0)   // %D line (signal)</code></pre></div>
+
+      <h2 id="ind-volatility">Volatility Indicators</h2>
+
+      <h3><code>ATR</code> — Average True Range</h3>
+      <p>True Range with Wilder smoothing. Measures volatility.</p>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>usage</span></div>
+<pre><code>atr := indicators.NewATR(data, 14)
+stopLoss := data.Close.Get(0) - 2*atr.Line().Get(0)</code></pre></div>
+
+      <h3><code>BollingerBands</code></h3>
+      <p>Mid (SMA), Upper (Mid + N×σ), Lower (Mid - N×σ). Includes <code>BandWidth()</code> and <code>PercentB()</code> helpers.</p>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>usage</span></div>
+<pre><code>bb := indicators.NewBollingerBands(data, 20, 2.0)
+upper := bb.Upper().Get(0)
+lower := bb.Lower().Get(0)
+mid   := bb.Mid().Get(0)</code></pre></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════ ANALYZERS ═══════════════════ -->
+<div id="page-analyzers" class="page">
+  <div class="container doc-layout">
+    <aside class="doc-sidebar">
+      <ul>
+        <li class="sidebar-label">Analyzers</li>
+        <li><a href="#az-overview">Overview</a></li>
+        <li><a href="#az-returns">Returns</a></li>
+        <li><a href="#az-sharpe">Sharpe Ratio</a></li>
+        <li><a href="#az-dd">DrawDown</a></li>
+        <li><a href="#az-trade">Trade Analyzer</a></li>
+        <li><a href="#az-sqn">SQN</a></li>
+      </ul>
+    </aside>
+    <div class="doc-content">
+      <h1>Analyzers Reference</h1>
+      <p>5 performance analyzers computed automatically after each run.</p>
+
+      <h2 id="az-overview">Overview</h2>
+      <p>Analyzers are attached to Cerebro before <code>Run()</code>. They implement the <code>engine.Analyzer</code> interface:</p>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>interface</span></div>
+<pre><code>type Analyzer interface {
+    Name() string
+    Analyze(result *RunResult, datas []*core.DataSeries) error
+    Print()
+}</code></pre></div>
+
+      <h2 id="az-returns">Returns</h2>
+      <table>
+        <thead><tr><th>Field</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>TotalReturnPct</code></td><td>(FinalValue - Start) / Start × 100</td></tr>
+          <tr><td><code>PnL</code></td><td>Absolute profit/loss in dollars</td></tr>
+          <tr><td><code>BestTradePnL</code></td><td>Highest net PnL of any closed trade</td></tr>
+          <tr><td><code>WorstTradePnL</code></td><td>Lowest net PnL of any closed trade</td></tr>
+          <tr><td><code>AvgTradePnL</code></td><td>Average net PnL across all closed trades</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="az-sharpe">Sharpe Ratio</h2>
+      <p>Annualised Sharpe: <code>(mean(R) - Rf) / stddev(R) × √AF</code></p>
+      <p>Config: <code>RiskFreeRate</code> (default 0), <code>AnnualisationFactor</code> (default 252 for daily).</p>
+
+      <h2 id="az-dd">DrawDown</h2>
+      <p>Walks the equity curve bar-by-bar tracking peaks:</p>
+      <table>
+        <thead><tr><th>Field</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>MaxDrawdownPct</code></td><td>Largest peak-to-trough drop (%)</td></tr>
+          <tr><td><code>MaxDrawdownAbs</code></td><td>Absolute dollar drawdown</td></tr>
+          <tr><td><code>MaxDDDuration</code></td><td>Duration of max DD in bars</td></tr>
+          <tr><td><code>CurrentDrawdownPct</code></td><td>Current drawdown at end of run</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="az-trade">Trade Analyzer</h2>
+      <table>
+        <thead><tr><th>Metric</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>WinRatePct</code></td><td>Percentage of winning trades</td></tr>
+          <tr><td><code>ProfitFactor</code></td><td>GrossProfit / |GrossLoss|</td></tr>
+          <tr><td><code>MaxConsecWins</code></td><td>Longest winning streak</td></tr>
+          <tr><td><code>MaxConsecLosses</code></td><td>Longest losing streak</td></tr>
+          <tr><td><code>LargestWin/Loss</code></td><td>Best and worst individual trades</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="az-sqn">SQN (System Quality Number)</h2>
+      <p>Van Tharp's measure: <code>SQN = mean(R) / stddev(R) × √N</code></p>
+      <table>
+        <thead><tr><th>Score</th><th>Grade</th></tr></thead>
+        <tbody>
+          <tr><td>&lt; 1.6</td><td>Difficult to Trade</td></tr>
+          <tr><td>1.6 – 1.9</td><td>Below Average</td></tr>
+          <tr><td>2.0 – 2.4</td><td>Average</td></tr>
+          <tr><td>2.5 – 2.9</td><td>Good</td></tr>
+          <tr><td>3.0 – 5.0</td><td>Excellent</td></tr>
+          <tr><td>&gt; 5.0</td><td>Holy Grail</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════ LIVE FEEDS ═══════════════════ -->
+<div id="page-live-feeds" class="page">
+  <div class="container doc-layout">
+    <aside class="doc-sidebar">
+      <ul>
+        <li class="sidebar-label">Live Feeds</li>
+        <li><a href="#lf-arch">Architecture</a></li>
+        <li><a href="#lf-ws">WebSocket</a></li>
+        <li><a href="#lf-rest">REST API</a></li>
+        <li><a href="#lf-nats">NATS</a></li>
+        <li><a href="#lf-redis">Redis Streams</a></li>
+        <li><a href="#lf-kafka">Kafka</a></li>
+        <li><a href="#lf-custom">Custom Parse</a></li>
+      </ul>
+    </aside>
+    <div class="doc-content">
+      <h1>Live Data Feeds</h1>
+      <p>Connect to real-time data sources for paper or live trading.</p>
+
+      <h2 id="lf-arch">Architecture</h2>
+      <p>Every live feed runs a background goroutine that pushes <code>core.Bar</code> values onto a Go channel. The engine's <code>Next()</code> blocks on that channel — so your strategy code is identical between backtest and live.</p>
+
+      <div class="info-box note">
+        <strong>📝 Paper Trading Only</strong>
+        Phase 4 provides live <em>data ingestion</em>. Orders still go through the simulated broker. Real exchange connectivity (Alpaca, IBKR, etc.) would be a future extension.
+      </div>
+
+      <h2 id="lf-ws">WebSocket Feed</h2>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>websocket.go</span></div>
+<pre><code>feed := livefeeds.NewWebSocketFeed(livefeeds.WebSocketConfig{
+    URL:            "wss://stream.binance.com:9443/ws/btcusdt@kline_1m",
+    Symbol:         "BTCUSDT",
+    ReconnectDelay: 5 * time.Second,  // auto-reconnect
+    ParseFunc:      myBinanceParser,   // custom JSON parser
+})
+
+c.AddData(feed)
+c.RunLive(ctx)</code></pre></div>
+
+      <h2 id="lf-rest">REST API Feed</h2>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>rest.go</span></div>
+<pre><code>feed := livefeeds.NewRESTFeed(livefeeds.RESTConfig{
+    URL:          "https://api.polygon.io/v2/aggs/ticker/AAPL/range/1/minute",
+    Symbol:       "AAPL",
+    PollInterval: 1 * time.Minute,
+    Headers:      map[string]string{"Authorization": "Bearer API_KEY"},
+    ParseFunc:    myPolygonParser,
+})</code></pre></div>
+
+      <h2 id="lf-nats">NATS Feed</h2>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>nats.go</span></div>
+<pre><code>feed := livefeeds.NewNATSFeed(livefeeds.NATSConfig{
+    URL:     "nats://localhost:4222",
+    Subject: "market.bars.AAPL",
+})</code></pre></div>
+
+      <h2 id="lf-redis">Redis Streams</h2>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>redis.go</span></div>
+<pre><code>feed := livefeeds.NewRedisFeed(livefeeds.RedisConfig{
+    Addr:     "localhost:6379",
+    Stream:   "bars:AAPL",
+    Group:    "gobacktrader",   // consumer group (optional)
+    Consumer: "worker-1",
+})</code></pre></div>
+
+      <h2 id="lf-kafka">Kafka Feed</h2>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>kafka.go</span></div>
+<pre><code>feed := livefeeds.NewKafkaFeed(livefeeds.KafkaConfig{
+    Brokers: []string{"kafka-1:9092", "kafka-2:9092"},
+    Topic:   "market-bars",
+    GroupID: "gobacktrader",
+})</code></pre></div>
+
+      <h2 id="lf-custom">Custom Bar Parsing</h2>
+      <p>All feeds accept a <code>ParseFunc</code> for custom message formats. The default parser handles JSON:</p>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>default format</span></div>
+<pre><code>// Default JSON format (all feeds):
+{"t": "2024-01-15T10:30:00Z", "o": 150.5, "h": 155.0, "l": 149.0, "c": 153.5, "v": 50000}
+
+// Unix timestamp also supported:
+{"t": 1705312200, "o": 150.0, "h": 155.0, "l": 149.0, "c": 153.0, "v": 100000}</code></pre></div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- ═══ Footer ═══ -->
+<footer class="footer">
+  <p>Built with ❤️ in Go · Inspired by <a href="https://www.backtrader.com" target="_blank">Backtrader</a> · <a href="https://github.com/thangtmkafi/gobacktrader" target="_blank">GitHub</a></p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
