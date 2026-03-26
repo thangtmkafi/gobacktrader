@@ -64,7 +64,7 @@
       <div class="feature-card">
         <div class="feature-icon cyan">📊</div>
         <h3>Core Engine</h3>
-        <p>Cerebro orchestrator, simulated Broker with Market/Limit/Stop/StopLimit orders, Position tracking, Trade PnL with commission schemes.</p>
+        <p>Cerebro orchestrator with Market/Limit/Stop/Trailing orders, Bracket & OCO support, Slippage, Position tracking, and Trade PnL.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon purple">📈</div>
@@ -78,8 +78,8 @@
       </div>
       <div class="feature-card">
         <div class="feature-icon orange">⚡</div>
-        <h3>5 Live Feed Transports</h3>
-        <p>WebSocket, REST API polling, NATS pub/sub, Redis Streams, and Kafka consumers. Same strategy code works for backtest and live.</p>
+        <h3>Live Feeds & Routing</h3>
+        <p>Real-time data via WS/REST/NATS/Kafka. True paper and live trading through pluggable OrderRouters and LiveBroker.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon pink">🎯</div>
@@ -89,7 +89,7 @@
       <div class="feature-card">
         <div class="feature-icon cyan">🧪</div>
         <h3>Battle-Tested</h3>
-        <p>39 unit and integration tests across 7 packages. Every indicator, analyzer, and feed transport is verified with hand-checked values.</p>
+        <p>41 unit and integration tests across 8 packages. Every indicator, analyzer, feed transport, and broker feature is verified.</p>
       </div>
     </div>
   </section>
@@ -345,6 +345,7 @@ results, _ := c.RunLive(ctx)</code></pre></div>
           <tr><td><code>Limit</code></td><td>When price reaches limit</td><td>Buy low / sell high</td></tr>
           <tr><td><code>Stop</code></td><td>When price hits stop level</td><td>Breakout entries, stop-losses</td></tr>
           <tr><td><code>StopLimit</code></td><td>Stop triggers a limit order</td><td>Controlled breakout entries</td></tr>
+          <tr><td><code>StopTrail</code></td><td>Trailing stop tracking moves</td><td>Protect profits</td></tr>
           <tr><td><code>Close</code></td><td>Current bar's close price</td><td>End-of-day orders</td></tr>
         </tbody>
       </table>
@@ -355,6 +356,7 @@ results, _ := c.RunLive(ctx)</code></pre></div>
         <tbody>
           <tr><td><code>PercentCommission</code></td><td>size × price × percent</td><td>0.1% per trade</td></tr>
           <tr><td><code>FixedCommission</code></td><td>fixed amount per order</td><td>$5 per trade</td></tr>
+          <tr><td><code>Futures/Margin</code></td><td>Margin requirement & leverage multiplier</td><td>Futures/Forex trading</td></tr>
           <tr><td><code>ZeroCommission</code></td><td>no commission</td><td>Paper trading</td></tr>
         </tbody>
       </table>
@@ -562,9 +564,9 @@ mid   := bb.Mid().Get(0)</code></pre></div>
       <h2 id="lf-arch">Architecture</h2>
       <p>Every live feed runs a background goroutine that pushes <code>core.Bar</code> values onto a Go channel. The engine's <code>Next()</code> blocks on that channel — so your strategy code is identical between backtest and live.</p>
 
-      <div class="info-box note">
-        <strong>📝 Paper Trading Only</strong>
-        Phase 4 provides live <em>data ingestion</em>. Orders still go through the simulated broker. Real exchange connectivity (Alpaca, IBKR, etc.) would be a future extension.
+      <div class="info-box tip">
+        <strong>🚀 Native Live Routing</strong>
+        gobacktrader fully supports <code>LiveBroker</code> implementations seamlessly swapping out the simulated engine. Your strategies use the exact same API to trade with real exchanges via custom <code>OrderRouter</code> integrations.
       </div>
 
       <h2 id="lf-ws">WebSocket Feed</h2>

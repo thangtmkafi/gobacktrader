@@ -30,13 +30,13 @@ results, _ := c.Run()
 
 | Category | What you get |
 |----------|-------------|
-| **Core Engine** | Cerebro orchestrator, simulated Broker, Order management (Market/Limit/Stop/StopLimit), Position tracking, Trade PnL |
+| **Core Engine** | Cerebro orchestrator, simulated Broker, Orders (Market/Limit/Stop/StopLimit/StopTrail/Bracket/OCO), Slippage, Position tracking, Trade PnL |
 | **Data Feeds** | CSV (Yahoo Finance format), WebSocket, REST API, NATS, Redis Streams, Kafka |
 | **10 Indicators** | SMA, EMA, WMA, DEMA, TEMA, RSI, MACD, Stochastic, ATR, Bollinger Bands |
 | **5 Analyzers** | Returns, Sharpe Ratio, Max Drawdown, Trade Analyzer, SQN (Van Tharp) |
 | **Position Sizing** | Fixed, Percent-of-portfolio, All-in sizers |
-| **Live Trading** | `RunLive(ctx)` for paper/live trading with real-time data feeds |
-| **Testing** | 39 tests across 7 packages — all passing |
+| **Live Trading** | `RunLive(ctx)` plus pluggable `LiveBroker` and `OrderRouter` for true paper/live trading |
+| **Testing** | 41 tests across 8 packages — all passing |
 
 ## Installation
 
@@ -259,6 +259,7 @@ gobacktrader/
 ├── indicators/     # 10 technical indicators
 ├── analyzers/      # 5 performance analyzers
 ├── livefeeds/      # WebSocket, REST, NATS, Redis, Kafka live feeds
+├── livebrokers/    # Live and Paper trading broker plugins
 ├── examples/
 │   ├── sma_cross/  # Backtest example
 │   └── live_demo/  # Live trading demo
@@ -271,8 +272,8 @@ gobacktrader/
 ┌──────────────────────────────────────────┐
 │                 Cerebro                   │
 │  ┌──────────┐  ┌──────────┐  ┌────────┐ │
-│  │ DataFeed │──│  Broker  │──│Strategy│ │
-│  │ CSV/Live │  │  Orders  │  │  Init  │ │
+│  │ DataFeed │──│BrokerBase│──│Strategy│ │
+│  │ CSV/Live │  │Sim/Live  │  │  Init  │ │
 │  │          │  │ Position │  │  Next  │ │
 │  └──────────┘  └──────────┘  └────────┘ │
 │       ↓             ↓            ↑       │
@@ -286,7 +287,7 @@ gobacktrader/
 
 ```bash
 go test ./...
-# 39 tests across 7 packages
+# 41 tests across 8 packages
 ```
 
 ## Backtrader Comparison
@@ -296,7 +297,7 @@ go test ./...
 | Language | Python 3 | Go 1.21+ |
 | Indicators | 100+ | 10 (core set) |
 | Data feeds | CSV, IB, Oanda | CSV, WS, REST, NATS, Redis, Kafka |
-| Live trading | Yes (IB, Oanda) | Paper trading (simulated broker) |
+| Live trading | Yes (IB, Oanda) | Live & Paper trading (pluggable OrderRouter) |
 | Performance | ~1x | ~10-50x faster |
 | Concurrency | GIL-limited | Native goroutines |
 

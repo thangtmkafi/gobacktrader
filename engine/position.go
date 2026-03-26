@@ -5,10 +5,12 @@ package engine
 import "math"
 
 // Position tracks the current holding for a single instrument.
-// Size > 0 → long, Size < 0 → short (Phase 1 only supports long).
+// Size > 0 → long, Size < 0 → short.
 type Position struct {
-	Size  float64 // current position size (positive = long)
-	Price float64 // average entry price
+	Size   float64 // current position size (positive = long)
+	Price  float64 // average entry price
+	Opened float64 // cumulative total opened size
+	Closed float64 // cumulative total closed size
 }
 
 // IsOpen returns true if there is an open position.
@@ -73,4 +75,10 @@ func (p *Position) PnL(currentPrice float64) float64 {
 		return 0
 	}
 	return p.Size * (currentPrice - p.Price)
+}
+
+// Clone returns an independent copy of this position.
+func (p *Position) Clone() *Position {
+	cp := *p
+	return &cp
 }

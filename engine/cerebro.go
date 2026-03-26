@@ -58,7 +58,7 @@ type Cerebro struct {
 	feeds      []DataFeed
 	factories  []StrategyFactory
 	analyzers  []Analyzer
-	broker     *Broker
+	broker     BrokerBase
 	startCash  float64
 }
 
@@ -83,7 +83,7 @@ func (c *Cerebro) SetCommission(comm CommissionInfo) {
 }
 
 // SetBroker replaces the default broker.
-func (c *Cerebro) SetBroker(broker *Broker) {
+func (c *Cerebro) SetBroker(broker BrokerBase) {
 	c.broker = broker
 }
 
@@ -149,6 +149,13 @@ func (c *Cerebro) Run() ([]*RunResult, error) {
 		strategies[i] = s
 	}
 
+	// Call Start() on strategies that support it
+	for _, s := range strategies {
+		if st, ok := s.(Starter); ok {
+			st.Start()
+		}
+	}
+
 	startingCash := c.broker.GetCash()
 	var equityCurve []float64
 
@@ -176,6 +183,8 @@ func (c *Cerebro) Run() ([]*RunResult, error) {
 
 		// Drain order/trade notifications and deliver to strategies
 		orders, trades := c.broker.DrainNotifications()
+		cash := c.broker.GetCash()
+		value := c.broker.GetValue(datas)
 		for _, s := range strategies {
 			if no, ok := s.(NotifyOrderer); ok {
 				for _, o := range orders {
@@ -187,11 +196,21 @@ func (c *Cerebro) Run() ([]*RunResult, error) {
 					nt.NotifyTrade(t)
 				}
 			}
+			if cv, ok := s.(CashValueNotifier); ok {
+				cv.NotifyCashValue(cash, value)
+			}
 		}
 
 		// Call strategy Next()
 		for _, s := range strategies {
 			s.Next()
+		}
+	}
+
+	// Call Stop() on strategies that support it
+	for _, s := range strategies {
+		if st, ok := s.(Stopper); ok {
+			st.Stop()
 		}
 	}
 
@@ -201,7 +220,7 @@ func (c *Cerebro) Run() ([]*RunResult, error) {
 		results = append(results, &RunResult{
 			StartingCash: startingCash,
 			FinalValue:   c.broker.GetValue(datas),
-			Trades:       c.broker.Trades,
+			Trades:       c.broker.GetTrades(),
 			EquityCurve:  equityCurve,
 		})
 	}
@@ -331,7 +350,7 @@ func (c *Cerebro) RunLive(ctx context.Context) ([]*RunResult, error) {
 		results = append(results, &RunResult{
 			StartingCash: startingCash,
 			FinalValue:   c.broker.GetValue(datas),
-			Trades:       c.broker.Trades,
+			Trades:       c.broker.GetTrades(),
 			EquityCurve:  equityCurve,
 		})
 	}

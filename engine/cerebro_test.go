@@ -35,7 +35,7 @@ func makeBrokerWithData(t *testing.T) (*Broker, *core.DataSeries) {
 func TestBrokerMarketBuy(t *testing.T) {
 	broker, data := makeBrokerWithData(t)
 
-	order := newOrder(data, OrderSideBuy, OrderTypeMarket, 10, 0, 0)
+	order := NewOrder(data, OrderSideBuy, OrderTypeMarket, 10, 0, 0)
 	broker.Submit(order)
 
 	// Advance data one more bar so broker can fill at open
@@ -70,7 +70,7 @@ func TestBrokerLimitOrder(t *testing.T) {
 	data := feed.Data()
 
 	// Bar1 close=130.73; set limit below bar2 low=124.44 → should not fill
-	order := newOrder(data, OrderSideBuy, OrderTypeLimit, 10, 120.00, 0)
+	order := NewOrder(data, OrderSideBuy, OrderTypeLimit, 10, 120.00, 0)
 	broker.Submit(order)
 	feed.Next()
 	broker.Next([]*core.DataSeries{data})
@@ -79,7 +79,7 @@ func TestBrokerLimitOrder(t *testing.T) {
 	}
 
 	// Now set limit at a price within bar2's range (High=131.07, Low=124.44)
-	order2 := newOrder(data, OrderSideBuy, OrderTypeLimit, 10, 126.00, 0)
+	order2 := NewOrder(data, OrderSideBuy, OrderTypeLimit, 10, 126.00, 0)
 	broker.Submit(order2)
 	broker.Next([]*core.DataSeries{data}) // same bar, already advanced
 	if order2.Status != OrderStatusCompleted {
@@ -96,7 +96,7 @@ func TestBrokerCancel(t *testing.T) {
 	broker := NewBroker(10_000)
 	data := feed.Data()
 
-	order := newOrder(data, OrderSideBuy, OrderTypeLimit, 10, 50.00, 0) // won't fill
+	order := NewOrder(data, OrderSideBuy, OrderTypeLimit, 10, 50.00, 0) // won't fill
 	broker.Submit(order)
 	broker.Cancel(order)
 	if order.Status != OrderStatusCanceled {
