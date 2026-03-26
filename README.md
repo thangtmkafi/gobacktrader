@@ -239,6 +239,32 @@ c.AddData(feed)
 c.RunLive(ctx)  // blocks until ctx is cancelled
 ```
 
+## Brokers & Live Routing
+
+The engine operates on the `BrokerBase` interface. By default, it uses a simulated broker for backtesting. For live or paper trading, you can swap it with a `LiveBroker` that maintains simulated constraints locally while concurrently routing real orders to an external exchange via the `OrderRouter` interface.
+
+Developing a custom broker integration involves simply implementing the 4-method `OrderRouter` interface:
+
+```go
+type OrderRouter interface {
+    PlaceOrder(ctx context.Context, order *engine.Order) (string, error)
+    CancelOrder(ctx context.Context, exchangeRef string) error
+    GetPositions(ctx context.Context) ([]livebrokers.LivePosition, error)
+    GetCash(ctx context.Context) (float64, error)
+}
+```
+
+Then plug your custom router into `Cerebro`:
+
+```go
+router := myexchange.NewRouter(apiKeys)
+// Initialize LiveBroker with your router and starting cash
+lb := livebrokers.NewLiveBroker(router, 100_000)
+
+// Direct Cerebro to use the LiveBroker
+c.SetBroker(lb)
+```
+
 ## Examples
 
 ```bash
