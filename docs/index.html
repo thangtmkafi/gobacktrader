@@ -327,20 +327,46 @@ c.AddAnalyzer(&analyzers.DrawDown{})
 c.Run()
 ret.Print()  // prints total return, PnL, best/worst trade</code></pre></div>
 
-      <h2 id="gs-live">Going Live</h2>
-      <p>Switch from backtesting to live with one line change:</p>
-      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>live.go</span></div>
-<pre><code>feed := livefeeds.NewWebSocketFeed(livefeeds.WebSocketConfig{
-    URL:    "wss://stream.example.com/bars",
+      <h2 id="gs-live">From Backtest to Live Trade</h2>
+      <p>Transitioning a proven strategy from historical backtesting to real-time paper or live trading is a seamless 3-step process in <code>gobacktrader</code>. You <strong>do not</strong> need to change your strategy code.</p>
+
+      <div class="info-box tip">
+        <strong>The Golden Rule</strong>
+        Your `Next()` logic natively blocks and waits for new bars regardless of whether they are read from a CSV file in microseconds, or streamed from a WebSocket every minute.
+      </div>
+
+      <h3>Step 1: Swap Data Feeds</h3>
+      <p>Replace your <code>feeds.GenericCSVData</code> with a live streaming source from the `livefeeds` package.</p>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>1_data.go</span></div>
+<pre><code>// Remove: c.AddCSV(feeds.DefaultYahooConfig("AAPL.csv"))
+
+// Add:
+feed := livefeeds.NewWebSocketFeed(livefeeds.WebSocketConfig{
+    URL:    "wss://stream.binance.com:9443/ws/btcusdt@kline_1m",
     Symbol: "BTCUSDT",
 })
-c.AddData(feed)
+c.AddData(feed)</code></pre></div>
 
-ctx, cancel := context.WithCancel(context.Background())
+      <h3>Step 2: Swap the Broker</h3>
+      <p>By default, <code>Cerebro</code> runs a simulated backtesting broker. To route your orders to the real world (or a paper trading API), inject a <code>LiveBroker</code> hooked up to your exchange's <code>OrderRouter</code>.</p>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>2_broker.go</span></div>
+<pre><code>// 1. Initialize your custom exchange API router
+router := myexchange.NewRouter("API_KEY", "API_SECRET")
+
+// 2. Wrap it in a LiveBroker (maintaining local state syncing)
+lb := livebrokers.NewLiveBroker(router, 100_000)
+
+// 3. tell Cerebro to use it
+c.SetBroker(lb)</code></pre></div>
+
+      <h3>Step 3: Execute `RunLive`</h3>
+      <p>Finally, instead of evaluating a fixed dataset via <code>c.Run()</code>, use <code>c.RunLive(ctx)</code>. It blocks indefinitely until the context is cancelled or the data stream closes.</p>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>3_execute.go</span></div>
+<pre><code>ctx, cancel := context.WithCancel(context.Background())
 defer cancel()
 
-// RunLive blocks until the feed ends or ctx is cancelled
-results, _ := c.RunLive(ctx)</code></pre></div>
+// Begins the live trading event loop
+results, err := c.RunLive(ctx)</code></pre></div>
     </div>
   </div>
 </div>
@@ -504,6 +530,36 @@ entry, takeProfit, stopLoss := ctx.BuyBracket(size, price*1.05, price*0.98)
 // Add trailing stops to lock in profits dynamically
 ctx.Buy(size, engine.WithStopTrailPercent(0.05)) // Trails 5% behind highest high
 </code></pre></div>
+
+      <!-- Broker Simulation Mechanics -->
+      <h2 id="c-broker-sim">Broker Simulator Mechanics</h2>
+      <p>The default <code>BrokerBase</code> implementation running in <code>Cerebro</code> is a deterministic simulator closely tracking Python Backtrader's mechanics, designed specifically to prevent look-ahead bias and handle margin realistically.</p>
+      
+      <div class="info-box note">
+        <strong>💸 Cash vs Value</strong>
+        <p style="margin-bottom: 0.5rem;">In backtesting, two concepts of capital are critically tracked independently:</p>
+        <ul style="margin-top: 0;">
+          <li><strong>Cash:</strong> The liquid capital available to buy assets, pay commissions, and cover margin requirements.</li>
+          <li><strong>Value:</strong> Total portfolio equity = <code>Cash + Unrealized PnL</code>. Unrealized PnL is calculated continuously using the most recent <strong>Close</strong> price of your open positions.</li>
+        </ul>
+      </div>
+
+      <h3>Order Evaluation Logic</h3>
+      <p>When you place an order during a bar (Bar <em>N</em>), it cannot execute immediately since that bar's data is already historical. It is strictly evaluated against the prices of the <strong>next</strong> bar (Bar <em>N+1</em>).</p>
+      
+      <div class="doc-content">
+        <table>
+          <thead><tr><th>Phase</th><th>Internal Action within the Simulator</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Bar <em>N</em> (Close)</strong></td><td>Your <code>Next()</code> method issues exactly <code>ctx.Buy()</code>. The order is created and registered as <em>Submitted</em> status.</td></tr>
+            <tr><td><strong>Bar <em>N+1</em> (Open)</strong></td><td>Broker attempts to match Market orders against the <code>Open</code> price. If liquidity allows, it fills immediately.</td></tr>
+            <tr><td><strong>Bar <em>N+1</em> (High/Low)</strong></td><td>Limit and Stop orders are checked. If the <code>Low</code> drops below a limit buy price, it triggers and fills.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Volume & Liquidity Fills</h3>
+      <p>By standard design, if a price condition is met, order volume fills at 100%. If you require strict volume constraint (e.g., you can't buy more than 10% of a bar's volume), Volume fill trackers cap partial fills across multiple consecutive bars until the order completes or expires.</p>
 
       <!-- Commissions & Realism -->
       <h2 id="c-commission">Realism (Slippage & Commissions)</h2>

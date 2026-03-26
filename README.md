@@ -247,9 +247,12 @@ ta.Print()     // Win rate, profit factor, consec wins/losses
 sqn.Print()    // System Quality Number + grade
 ```
 
-## Live Feeds
+## From Backtest to Live Trade
 
-Switch from backtesting to paper trading with one line change — `RunLive(ctx)`:
+Transitioning a proven strategy from historical backtesting to real-time live trading is a seamless 3-step process in `gobacktrader`. **You do not need to change your strategy code.**
+
+### Step 1: Swap Data Feeds
+Replace your `feeds.GenericCSVData` with a live streaming source from the `livefeeds` package.
 
 ```go
 // WebSocket
@@ -284,12 +287,45 @@ feed := livefeeds.NewKafkaFeed(livefeeds.KafkaConfig{
 })
 
 c.AddData(feed)
-c.RunLive(ctx)  // blocks until ctx is cancelled
+```
+
+### Step 2: Swap the Broker
+By default, `Cerebro` runs a simulated backtesting broker. To route your orders to the real world (or a paper trading API), inject a `LiveBroker` hooked up to your exchange's `OrderRouter`.
+
+```go
+// Initialize your custom exchange API router
+router := myexchange.NewRouter("API_KEY", "API_SECRET")
+
+// Wrap it in a LiveBroker (maintaining local state syncing)
+lb := livebrokers.NewLiveBroker(router, 100_000)
+
+// tell Cerebro to use it
+c.SetBroker(lb)
+```
+
+### Step 3: Execute `RunLive`
+Finally, instead of evaluating a fixed dataset via `c.Run()`, use `c.RunLive(ctx)`. It blocks indefinitely until the context is cancelled or the data stream closes.
+
+```go
+ctx, cancel := context.WithCancel(context.Background())
+defer cancel()
+
+// Begins the live trading event loop
+results, err := c.RunLive(ctx)
 ```
 
 ## Brokers & Live Routing
 
-The engine operates on the `BrokerBase` interface. By default, it uses a simulated broker for backtesting. For live or paper trading, you can swap it with a `LiveBroker` that maintains simulated constraints locally while concurrently routing real orders to an external exchange via the `OrderRouter` interface.
+The engine operates on the `BrokerBase` interface. By default, it uses a simulated broker for backtesting. 
+
+### Simulator Mechanics
+The default backtesting broker is a deterministic simulator closely mapping the Python Backtrader engine:
+- **Cash vs Value**: Tracks `Cash` (liquid capital for margins/fees) independently from `Value` (total portfolio equity including unrealized PnL).
+- **Execution Evaluation**: Orders placed during Bar *N* are strictly evaluated for execution against the price markers (Open, High, Low, Close) of Bar *N+1* to negate look-ahead bias. 
+- **Volume Fills**: Orders default to 100% fulfillments upon trigger but can be constrained to partial fills if a volume proportion (e.g., 10% of bar volume) is specified.
+
+### Live & Paper Trading
+For live or paper trading, you can swap the simulator with a `LiveBroker` that maintains simulated constraints locally while concurrently routing real orders to an external exchange via the `OrderRouter` interface.
 
 Developing a custom broker integration involves simply implementing the 4-method `OrderRouter` interface:
 
