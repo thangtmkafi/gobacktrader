@@ -95,6 +95,57 @@
     </div>
   </section>
 
+  <!-- Comparison Section -->
+  <section class="container" style="padding: 4rem 2rem;">
+    <div class="section-header">
+      <h2>Backtrader Comparison</h2>
+      <p>How gobacktrader stacks up against the original Python library.</p>
+    </div>
+    <div class="doc-content" style="max-width: 900px; margin: 0 auto; box-shadow: var(--shadow-glow); border-radius: var(--radius-lg);">
+      <table style="margin: 0;">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Backtrader (Python)</th>
+            <th>gobacktrader (Go)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Language</strong></td>
+            <td>Python 3</td>
+            <td>Go 1.21+</td>
+          </tr>
+          <tr>
+            <td><strong>Indicators</strong></td>
+            <td>100+</td>
+            <td>10 (Core set, extensible)</td>
+          </tr>
+          <tr>
+            <td><strong>Data Feeds</strong></td>
+            <td>CSV, IB, Oanda, etc.</td>
+            <td>CSV, WebSocket, REST, NATS, Redis, Kafka</td>
+          </tr>
+          <tr>
+            <td><strong>Live Trading</strong></td>
+            <td>Yes (IB, Oanda)</td>
+            <td>Live & Paper trading (Pluggable logic)</td>
+          </tr>
+          <tr>
+            <td><strong>Performance</strong></td>
+            <td>Baseline (~1x)</td>
+            <td><span style="color: var(--accent-emerald); font-weight: 600; text-shadow: 0 0 10px rgba(16,185,129,0.3);">~10-50x Faster</span></td>
+          </tr>
+          <tr>
+            <td><strong>Concurrency</strong></td>
+            <td>GIL-limited</td>
+            <td>Native goroutines</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
   <!-- Quick Example -->
   <section class="container" style="padding: 3rem 2rem;">
     <div class="section-header">
@@ -146,13 +197,24 @@ fmt.Printf("Final Value: $%.2f\n", results[0].FinalValue)</code></pre>
       <h1>Getting Started</h1>
       <p>Get up and running with gobacktrader in 5 minutes.</p>
 
+      <div class="info-box tip">
+        <strong>The Platform Objectives</strong><br>
+        1. Ease of use<br>
+        2. Go back to 1<br>
+        <br><em>(Loosely based on the Karate Kid rules by Mr. Miyagi)</em>
+      </div>
+
       <h2 id="gs-install">Installation</h2>
       <p>gobacktrader requires <strong>Go 1.21+</strong>. Install via <code>go get</code>:</p>
       <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>terminal</span></div>
 <pre><code>go get github.com/thangtmkafi/gobacktrader</code></pre></div>
 
-      <h2 id="gs-first">Your First Backtest</h2>
-      <p>The minimum viable backtest needs: a data feed, a strategy, and Cerebro to run it.</p>
+      <h2 id="gs-first">The Basics</h2>
+      <p>Running the platform fundamentally boils down to two distinct phases:</p>
+      <ol>
+        <li><strong>Create a Strategy</strong>: Decide on parameters, instantiate Indicators, and write the logic.</li>
+        <li><strong>Create a Cerebro Engine</strong>: Inject the strategy, load a data feed, and execute.</li>
+      </ol>
       <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>main.go</span></div>
 <pre><code>package main
 
@@ -181,11 +243,19 @@ func (s *BuyAndHold) Next() {
 }
 
 func main() {
+    // 2. Create a Cerebro Engine
     c := engine.NewCerebro()
+    
+    // Config...
     c.SetCash(100_000)
+    
+    // Load and Inject a Data Feed
     c.AddCSV(feeds.DefaultYahooConfig("AAPL.csv"))
+
+    // Inject the Strategy
     c.AddStrategy(func() engine.Strategy { return &BuyAndHold{} })
 
+    // And execute cerebro.Run()
     results, err := c.Run()
     if err != nil { panic(err) }
 
@@ -283,12 +353,15 @@ results, _ := c.RunLive(ctx)</code></pre></div>
       <ul>
         <li class="sidebar-label">Concepts</li>
         <li><a href="#c-arch">Architecture</a></li>
-        <li><a href="#c-data">Data Model</a></li>
-        <li><a href="#c-engine">Engine Flow</a></li>
-        <li><a href="#c-orders">Order Types</a></li>
-        <li><a href="#c-advanced-orders">Advanced Orders</a></li>
-        <li><a href="#c-sizing">Position Sizing</a></li>
-        <li><a href="#c-commission">Commissions & Realism</a></li>
+        <li><a href="#c-cerebro">Cerebro Engine</a></li>
+        <li><a href="#c-data">Data Feeds</a></li>
+        <li><a href="#c-strategy">Strategies</a></li>
+        <li><a href="#c-indicators">Indicators</a></li>
+        <li><a href="#c-analyzers">Analyzers</a></li>
+        <li><a href="#c-sizing">Sizers</a></li>
+        <li><a href="#c-orders">Orders & Execution</a></li>
+        <li><a href="#c-commission">Realism (Slippage/Fees)</a></li>
+        <li><a href="#c-broker">Brokers</a></li>
       </ul>
     </aside>
     <div class="doc-content">
@@ -297,25 +370,57 @@ results, _ := c.RunLive(ctx)</code></pre></div>
 
       <h2 id="c-arch">Architecture</h2>
       <p>gobacktrader follows the same high-level design as Python's Backtrader, adapted to Go idioms:</p>
-      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>architecture</span></div>
-<pre><code>┌─────────────────────────────────────────────────┐
-│                    Cerebro                       │
-│                                                  │
-│  ┌──────────┐   ┌──────────┐   ┌─────────────┐ │
-│  │ DataFeed │──▶│  Broker  │──▶│  Strategy   │ │
-│  │ CSV/WS/  │   │ Orders   │   │  Init()     │ │
-│  │ NATS/... │   │ Positions│   │  Next()     │ │
-│  └──────────┘   │ Trades   │   │  Notify*()  │ │
-│       │         └──────────┘   └─────────────┘ │
-│       ▼              │               ▲          │
-│  ┌──────────┐   ┌──────────┐   ┌──────────┐   │
-│  │Indicators│   │ Analyzers│   │  Sizers   │   │
-│  │ SMA, RSI │   │ Sharpe   │   │ Fixed, %  │   │
-│  │ MACD ... │   │ DrawDown │   │           │   │
-│  └──────────┘   └──────────┘   └──────────┘   │
-└─────────────────────────────────────────────────┘</code></pre></div>
+      <div style="background:var(--bg-code); padding:2rem; border-radius:var(--radius-lg); border:1px solid var(--border-light); text-align:center; box-shadow:var(--shadow-card); margin:2.5rem 0;">
+        <div style="background:var(--gradient-brand); color:#fff; padding:1.2rem; border-radius:var(--radius-md); font-weight:800; font-size:1.2rem; margin-bottom:1.5rem; letter-spacing:0.05em; box-shadow:0 10px 20px rgba(6,182,212,0.2);">
+          Cerebro Orchestrator
+        </div>
+        
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:2rem;">
+          <div style="flex:1; background:var(--bg-card); padding:1.2rem 1rem; border-radius:var(--radius-md); border:1px solid var(--border-focus); min-width:150px;">
+            <strong style="color:var(--text-primary);">Data Feeds</strong><br>
+            <span style="color:var(--text-muted); font-size:0.85rem;">CSV / Live WebSocket</span>
+          </div>
+          <div style="color:var(--text-muted); font-size:1.5rem;">▶</div>
+          <div style="flex:1; background:var(--bg-card); padding:1.2rem 1rem; border-radius:var(--radius-md); border:1px solid var(--border-focus); min-width:150px;">
+            <strong style="color:var(--text-primary);">Broker</strong><br>
+            <span style="color:var(--text-muted); font-size:0.85rem;">Orders / Positions</span>
+          </div>
+          <div style="color:var(--text-muted); font-size:1.5rem;">▶</div>
+          <div style="flex:1; background:var(--bg-card); padding:1.2rem 1rem; border-radius:var(--radius-md); border:1px solid var(--border-focus); min-width:150px;">
+            <strong style="color:var(--text-primary);">Strategy</strong><br>
+            <span style="color:var(--text-muted); font-size:0.85rem;">Init() & Next() Loops</span>
+          </div>
+        </div>
+        
+        <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+          <div style="flex:1; background:rgba(255,255,255,0.03); padding:1rem; border-radius:var(--radius-sm); border:1px dashed var(--border-light); color:var(--accent-pink); font-weight:600;">Indicators</div>
+          <div style="flex:1; background:rgba(255,255,255,0.03); padding:1rem; border-radius:var(--radius-sm); border:1px dashed var(--border-light); color:var(--accent-purple); font-weight:600;">Analyzers</div>
+          <div style="flex:1; background:rgba(255,255,255,0.03); padding:1rem; border-radius:var(--radius-sm); border:1px dashed var(--border-light); color:var(--accent-emerald); font-weight:600;">Sizers</div>
+        </div>
+      </div>
 
-      <h2 id="c-data">Data Model</h2>
+      <!-- Cerebro Engine -->
+      <h2 id="c-cerebro">Cerebro Engine</h2>
+      <p>Cerebro is the absolute core of gobacktrader. It is the orchestrator that gathers inputs (data feeds, strategies, analyzers, sizers) and executes the backtest or live trading loop.</p>
+      <ul>
+        <li><code>c.AddStrategy()</code>: Injects the trading logic.</li>
+        <li><code>c.AddData()</code> / <code>c.AddCSV()</code>: Provides the market timeline (supporting multiple timeframes).</li>
+        <li><code>c.AddAnalyzer()</code>: Attaches performance metrics.</li>
+        <li><code>c.SetBroker()</code>: Overrides the default simulation broker with a live one.</li>
+      </ul>
+
+      <!-- Strategy -->
+      <h2 id="c-strategy">Strategy Lifecycle</h2>
+      <p>Strategies implement the <code>engine.Strategy</code> interface. The lifecycle is strictly ordered:</p>
+      <ol>
+        <li><code>Init(ctx)</code>: Called once before the engine starts. <strong>Crucial:</strong> All indicators must be created here using <code>ctx.PreloadedData()</code>.</li>
+        <li><code>Next()</code>: Called exactly once per bar. Trading logic lives here.</li>
+        <li><code>NotifyOrder(*engine.Order)</code>: Fires when order states change (Submitted, Accepted, Filled, Canceled).</li>
+        <li><code>NotifyTrade(*engine.Trade)</code>: Fires when a trade opens/closes (to track profit/loss).</li>
+      </ol>
+
+      <!-- Data Feeds -->
+      <h2 id="c-data">Data Feeds & Model</h2>
       <p>Two core types power all data access:</p>
       <h3><code>core.Line</code></h3>
       <p>A time-indexed <code>float64</code> series with a cursor. Access values relative to the current bar:</p>
@@ -347,7 +452,36 @@ results, _ := c.RunLive(ctx)</code></pre></div>
         <li><strong>Analyzers</strong> — each analyzer's <code>Analyze()</code> is called with the final RunResult</li>
       </ol>
 
-      <h2 id="c-orders">Order Types</h2>
+      <!-- Indicators -->
+      <h2 id="c-indicators">Indicators</h2>
+      <p>Like the python library, indicators compute efficiently in bulk during <code>Init()</code>. Gobacktrader ships with dozens of built-in indicators (SMA, EMA, MACD, RSI, ATR, BollingerBands) inside the <code>indicators</code> package.</p>
+
+      <!-- Analyzers -->
+      <h2 id="c-analyzers">Analyzers</h2>
+      <p>Analyzers evaluate the performance of your algorithm across the entire backtest, generating rich reports at the end.</p>
+      <ul>
+        <li><code>analyzers.SharpeRatio</code>: Risk-adjusted returns.</li>
+        <li><code>analyzers.Drawdown</code>: Max peak-to-trough drops.</li>
+        <li><code>analyzers.TradeAnalyzer</code>: Win/Loss ratios, streak tracking.</li>
+        <li><code>analyzers.SQN</code>: System Quality Number.</li>
+      </ul>
+
+      <!-- Sizers -->
+      <h2 id="c-sizing">Position Sizing (Sizers)</h2>
+      <p>By default, orders take raw floating-point sizes, but gobacktrader provides utility modules to compute sizes against true portfolio equity.</p>
+      <ul>
+        <li><code>FixedSizer{Amount: 10}</code></li>
+        <li><code>PercentSizer{Percent: 0.10}</code> — 10% of total portfolio value</li>
+        <li><code>AllInSizer{}</code> — Uses 100% of available cash</li>
+      </ul>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>usage</span></div>
+<pre><code>sizer := engine.PercentSizer{Percent: 0.10}
+size := sizer.Size(ctx, ctx.Data())
+ctx.Buy(size)
+</code></pre></div>
+
+      <!-- Orders -->
+      <h2 id="c-orders">Orders & Execution</h2>
       <table>
         <thead><tr><th>Type</th><th>Execution</th><th>Use Case</th></tr></thead>
         <tbody>
@@ -360,7 +494,7 @@ results, _ := c.RunLive(ctx)</code></pre></div>
         </tbody>
       </table>
 
-      <h2 id="c-advanced-orders">Advanced Orders (Brackets & Trailing)</h2>
+      <h3 id="c-advanced-orders">Advanced Orders (Brackets & Trailing)</h3>
       <p>gobacktrader natively routes advanced OCO (One-Cancels-Other) groups to protect positions automatically.</p>
       <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>usage</span></div>
 <pre><code>// Buy at market, place a limit take-profit at +5%, and stop-loss at -2%
@@ -371,20 +505,8 @@ entry, takeProfit, stopLoss := ctx.BuyBracket(size, price*1.05, price*0.98)
 ctx.Buy(size, engine.WithStopTrailPercent(0.05)) // Trails 5% behind highest high
 </code></pre></div>
 
-      <h2 id="c-sizing">Position Sizing</h2>
-      <p>By default, orders take raw floating-point sizes, but gobacktrader provides utility modules to compute sizes against dynamic portfolio equity.</p>
-      <ul>
-        <li><code>FixedSizer{Amount: 10}</code></li>
-        <li><code>PercentSizer{Percent: 0.10}</code> — 10% of total portfolio value</li>
-        <li><code>AllInSizer{}</code> — Uses 100% of available cash</li>
-      </ul>
-      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>usage</span></div>
-<pre><code>sizer := engine.PercentSizer{Percent: 0.10}
-size := sizer.Size(ctx, ctx.Data())
-ctx.Buy(size)
-</code></pre></div>
-
-      <h2 id="c-commission">Commissions & Realism</h2>
+      <!-- Commissions & Realism -->
+      <h2 id="c-commission">Realism (Slippage & Commissions)</h2>
       <p>Configure the Cerebro instance to mimic real-world liquidity conditions.</p>
       
       <h3>Slippage</h3>

@@ -18,6 +18,12 @@
 
 **gobacktrader** is a Go port of the popular [Backtrader](https://www.backtrader.com) Python framework. It provides a complete ecosystem for developing, backtesting, and paper-trading algorithmic trading strategies — all in pure Go with zero CGo dependencies.
 
+### The Platform Objectives
+1. **Ease of use**
+2. **Go back to 1**
+
+*(Loosely based on the Karate Kid rules by Mr. Miyagi)*
+
 ```go
 c := engine.NewCerebro()
 c.SetCash(10_000)
@@ -46,9 +52,14 @@ go get github.com/thangtmkafi/gobacktrader
 
 Requires **Go 1.21+**.
 
-## Quick Start
+## Quick Start: The Basics
 
-### 1. Create your strategy
+Running the platform fundamentally boils down to two distinct phases:
+
+### 1. Create a Strategy
+*   Decide on potential adjustable parameters
+*   Instantiate the **Indicators** you need in the Strategy
+*   Write down the logic for entering/exiting the market
 
 ```go
 package main
@@ -100,7 +111,10 @@ func (s *SMACross) Next() {
 }
 ```
 
-### 2. Run the backtest
+### 2. Create a Cerebro Engine
+*   Inject the Strategy
+*   Load and Inject a Data Feed
+*   Execute `cerebro.Run()`
 
 ```go
 package main
@@ -141,6 +155,14 @@ func main() {
 }
 ```
 
+## Data Feeds
+
+Data feeds (like <code>feeds.GenericCSVData</code>) supply the `core.DataSeries` timeline. Multiple feeds can be injected into Cerebro (`Data0`, `Data1`, etc.) for multi-timeframe backtesting.
+
+## Strategies
+
+Everything you write lives in a Strategy. The `Init(ctx)` method is strictly for declaring parameters and instantiating **Indicators**. The `Next()` method processes the logic bar-by-bar.
+
 ## Indicators
 
 Build indicators in `Init()` using `ctx.PreloadedData()`, then read values in `Next()`:
@@ -175,6 +197,29 @@ func (s *MyStrategy) Next() {
 | **Stochastic** | `NewStochastic(data, k, d)` | `.K()` `.D()` |
 | **ATR** | `NewATR(data, period)` | `.Line()` |
 | **Bollinger** | `NewBollingerBands(data, period, devs)` | `.Mid()` `.Upper()` `.Lower()` |
+
+## Sizers
+
+By default, orders take raw floating-point sizes, but gobacktrader provides utility modules to compute sizes dynamically against portfolio equity (`FixedSizer`, `PercentSizer`, `AllInSizer`).
+
+```go
+sizer := engine.PercentSizer{Percent: 0.10}
+size := sizer.Size(ctx, ctx.Data())
+ctx.Buy(size)
+```
+
+## Orders & Execution
+
+gobacktrader natively routes advanced OCO (One-Cancels-Other) groups to protect positions automatically.
+
+```go
+// Buy at market, place a limit take profit at +5%, and stop loss at -2%
+price := ctx.Data().Close.Get(0)
+ctx.BuyBracket(size, price*1.05, price*0.98)
+
+// Add trailing stops to lock in profits dynamically
+ctx.Buy(size, engine.WithStopTrailPercent(0.05))
+```
 
 ## Analyzers
 
@@ -297,19 +342,25 @@ gobacktrader/
 
 ## Architecture
 
-```
-┌──────────────────────────────────────────┐
-│                 Cerebro                   │
-│  ┌──────────┐  ┌──────────┐  ┌────────┐ │
-│  │ DataFeed │──│BrokerBase│──│Strategy│ │
-│  │ CSV/Live │  │Sim/Live  │  │  Init  │ │
-│  │          │  │ Position │  │  Next  │ │
-│  └──────────┘  └──────────┘  └────────┘ │
-│       ↓             ↓            ↑       │
-│  ┌──────────┐  ┌──────────┐  ┌────────┐ │
-│  │Indicators│  │ Analyzers│  │ Sizers │ │
-│  └──────────┘  └──────────┘  └────────┘ │
-└──────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph Cerebro ["Cerebro Orchestrator Engine"]
+        direction LR
+        Data["Data Feeds<br/>(CSV / Live WebSocket)"] --> Broker["BrokerBase<br/>(Sim / LiveBroker)"]
+        Broker --> Strategy["Strategy<br/>(Init / Next)"]
+    end
+    
+    Data -.-> Indicators["Indicators<br/>(SMA / RSI / MACD)"]
+    Broker -.-> Analyzers["Analyzers<br/>(Sharpe / SQN / DrawDown)"]
+    Strategy -.-> Sizers["Sizers<br/>(Fixed / Percent)"]
+    
+    style Cerebro fill:transparent,stroke:#06b6d4,stroke-width:2px,stroke-dasharray: 5 5,color:#fff
+    style Data fill:#111827,stroke:#374151,stroke-width:1px,color:#fff
+    style Broker fill:#111827,stroke:#374151,stroke-width:1px,color:#fff
+    style Strategy fill:#111827,stroke:#374151,stroke-width:1px,color:#fff
+    style Indicators fill:#312e81,stroke:#6366f1,stroke-width:1px,color:#fff
+    style Analyzers fill:#064e3b,stroke:#10b981,stroke-width:1px,color:#fff
+    style Sizers fill:#4c1d95,stroke:#a855f7,stroke-width:1px,color:#fff
 ```
 
 ## Testing
