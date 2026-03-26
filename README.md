@@ -60,23 +60,18 @@ import (
 )
 
 type SMACross struct {
-    ctx     *engine.StrategyContext
-    fast    *indicators.SMA
-    slow    *indicators.SMA
-    pending *engine.Order
+    ctx  *engine.StrategyContext
+    fast *indicators.SMA
+    slow *indicators.SMA
 }
 
 func (s *SMACross) Init(ctx *engine.StrategyContext) {
     s.ctx = ctx
-    // Build indicators from PreloadedData (all bars available)
     s.fast = indicators.NewSMA(ctx.PreloadedData(), 10)
     s.slow = indicators.NewSMA(ctx.PreloadedData(), 30)
 }
 
 func (s *SMACross) Next() {
-    if s.pending != nil {
-        return
-    }
     fast := s.fast.Line().Get(0)
     slow := s.slow.Line().Get(0)
     fastPrev := s.fast.Line().Get(-1)
@@ -87,16 +82,20 @@ func (s *SMACross) Next() {
     }
 
     pos := s.ctx.GetPosition(s.ctx.Data())
+    
+    // Cross over: Buy
     if !pos.IsOpen() && fastPrev <= slowPrev && fast > slow {
-        s.pending = s.ctx.Buy(10)  // buy 10 shares
-    } else if pos.IsOpen() && fastPrev >= slowPrev && fast < slow {
-        s.pending = s.ctx.Close()  // close position
-    }
-}
-
-func (s *SMACross) NotifyOrder(o *engine.Order) {
-    if o.IsCompleted() {
-        s.pending = nil
+        // Position Sizing: Risk 10% of our portfolio
+        size := engine.PercentSizer{Percent: 0.10}.Size(s.ctx, s.ctx.Data())
+        
+        // Enter via Bracket Order: Take Profit at +5%, Stop Loss at -2%
+        price := s.ctx.Data().Close.Get(0)
+        s.ctx.BuyBracket(size, price*1.05, price*0.98)
+    } 
+    
+    // Cross under: Liquidate
+    if pos.IsOpen() && fastPrev >= slowPrev && fast < slow {
+        s.ctx.Close()
     }
 }
 ```
@@ -115,8 +114,12 @@ import (
 
 func main() {
     c := engine.NewCerebro()
+    
+    // Portfolio & Realism Setup
     c.SetCash(100_000)
-    c.SetCommission(engine.PercentCommission{Percent: 0.001})
+    c.SetSlippagePercent(0.001) // 0.1% slippage on all orders
+    c.SetCommission(engine.FuturesCommission{Margin: 2000, Multiplier: 50}) // Futures margin
+    
     c.AddCSV(feeds.DefaultYahooConfig("AAPL.csv"))
     c.AddStrategy(func() engine.Strategy { return &SMACross{} })
 

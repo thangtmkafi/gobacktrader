@@ -107,8 +107,12 @@
         <span>main.go</span>
       </div>
       <pre><code>c := engine.NewCerebro()
+
+// Realism configurations
 c.SetCash(100_000)
-c.SetCommission(engine.PercentCommission{Percent: 0.001})
+c.SetSlippagePercent(0.001) // 0.1% slippage
+c.SetCommission(engine.FuturesCommission{Margin: 2000, Multiplier: 50})
+
 c.AddCSV(feeds.DefaultYahooConfig("AAPL.csv"))
 c.AddStrategy(func() engine.Strategy { return &MySMACross{} })
 
@@ -168,7 +172,10 @@ func (s *BuyAndHold) Init(ctx *engine.StrategyContext) { s.ctx = ctx }
 
 func (s *BuyAndHold) Next() {
     if !s.bought {
-        s.ctx.Buy(100)   // buy 100 shares
+        // Position Sizing: Use all available cash!
+        size := engine.AllInSizer{}.Size(s.ctx, s.ctx.Data())
+        
+        s.ctx.Buy(size)
         s.bought = true
     }
 }
@@ -210,7 +217,7 @@ type NotifyTrader interface {
       <ul>
         <li><code>ctx.Data()</code> — the live (bar-by-bar) DataSeries</li>
         <li><code>ctx.PreloadedData()</code> — all bars pre-loaded (for building indicators)</li>
-        <li><code>ctx.Buy(size)</code>, <code>ctx.Sell(size)</code>, <code>ctx.Close()</code> — trading helpers</li>
+        <li><code>ctx.Buy(size)</code>, <code>ctx.BuyBracket(size, takeProfit, stopLoss)</code> — trading helpers</li>
         <li><code>ctx.GetPosition(data)</code> — current position for a data feed</li>
         <li><code>ctx.GetCash()</code>, <code>ctx.GetValue()</code> — portfolio state</li>
       </ul>
@@ -279,7 +286,9 @@ results, _ := c.RunLive(ctx)</code></pre></div>
         <li><a href="#c-data">Data Model</a></li>
         <li><a href="#c-engine">Engine Flow</a></li>
         <li><a href="#c-orders">Order Types</a></li>
-        <li><a href="#c-commission">Commissions</a></li>
+        <li><a href="#c-advanced-orders">Advanced Orders</a></li>
+        <li><a href="#c-sizing">Position Sizing</a></li>
+        <li><a href="#c-commission">Commissions & Realism</a></li>
       </ul>
     </aside>
     <div class="doc-content">
@@ -351,7 +360,40 @@ results, _ := c.RunLive(ctx)</code></pre></div>
         </tbody>
       </table>
 
-      <h2 id="c-commission">Commission Schemes</h2>
+      <h2 id="c-advanced-orders">Advanced Orders (Brackets & Trailing)</h2>
+      <p>gobacktrader natively routes advanced OCO (One-Cancels-Other) groups to protect positions automatically.</p>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>usage</span></div>
+<pre><code>// Buy at market, place a limit take-profit at +5%, and stop-loss at -2%
+price := ctx.Data().Close.Get(0)
+entry, takeProfit, stopLoss := ctx.BuyBracket(size, price*1.05, price*0.98)
+
+// Add trailing stops to lock in profits dynamically
+ctx.Buy(size, engine.WithStopTrailPercent(0.05)) // Trails 5% behind highest high
+</code></pre></div>
+
+      <h2 id="c-sizing">Position Sizing</h2>
+      <p>By default, orders take raw floating-point sizes, but gobacktrader provides utility modules to compute sizes against dynamic portfolio equity.</p>
+      <ul>
+        <li><code>FixedSizer{Amount: 10}</code></li>
+        <li><code>PercentSizer{Percent: 0.10}</code> — 10% of total portfolio value</li>
+        <li><code>AllInSizer{}</code> — Uses 100% of available cash</li>
+      </ul>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>usage</span></div>
+<pre><code>sizer := engine.PercentSizer{Percent: 0.10}
+size := sizer.Size(ctx, ctx.Data())
+ctx.Buy(size)
+</code></pre></div>
+
+      <h2 id="c-commission">Commissions & Realism</h2>
+      <p>Configure the Cerebro instance to mimic real-world liquidity conditions.</p>
+      
+      <h3>Slippage</h3>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>usage</span></div>
+<pre><code>// Explicitly penalize fill prices by 0.1% against favor
+c.SetSlippagePercent(0.001)
+</code></pre></div>
+
+      <h3>Margins & Fees</h3>
       <table>
         <thead><tr><th>Scheme</th><th>Formula</th><th>Example</th></tr></thead>
         <tbody>
@@ -361,6 +403,10 @@ results, _ := c.RunLive(ctx)</code></pre></div>
           <tr><td><code>ZeroCommission</code></td><td>no commission</td><td>Paper trading</td></tr>
         </tbody>
       </table>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>usage</span></div>
+<pre><code>// Trade futures with a $2,000 margin requirement and 50x multiplier
+c.SetCommission(engine.FuturesCommission{Margin: 2000, Multiplier: 50})
+</code></pre></div>
     </div>
   </div>
 </div>
