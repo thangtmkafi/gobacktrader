@@ -186,11 +186,11 @@ fmt.Printf("Final Value: $%.2f\n", results[0].FinalValue)</code></pre>
       <ul>
         <li class="sidebar-label">Getting Started</li>
         <li><a href="#gs-install">Installation</a></li>
-        <li><a href="#gs-first">Your First Backtest</a></li>
+        <li><a href="#gs-first">The Basics</a></li>
         <li><a href="#gs-strategy">Writing a Strategy</a></li>
         <li><a href="#gs-indicators">Adding Indicators</a></li>
         <li><a href="#gs-analyzers">Analyzing Results</a></li>
-        <li><a href="#gs-live">Going Live</a></li>
+        <li><a href="#gs-live">Backtest to Live Trade</a></li>
       </ul>
     </aside>
     <div class="doc-content">
@@ -380,14 +380,15 @@ results, err := c.RunLive(ctx)</code></pre></div>
         <li class="sidebar-label">Concepts</li>
         <li><a href="#c-arch">Architecture</a></li>
         <li><a href="#c-cerebro">Cerebro Engine</a></li>
-        <li><a href="#c-data">Data Feeds</a></li>
-        <li><a href="#c-strategy">Strategies</a></li>
+        <li><a href="#c-strategy">Strategy Lifecycle</a></li>
+        <li><a href="#c-data">Data Feeds & Model</a></li>
+        <li><a href="#c-engine">Engine Flow</a></li>
         <li><a href="#c-indicators">Indicators</a></li>
         <li><a href="#c-analyzers">Analyzers</a></li>
-        <li><a href="#c-sizing">Sizers</a></li>
+        <li><a href="#c-sizing">Position Sizing</a></li>
         <li><a href="#c-orders">Orders & Execution</a></li>
+        <li><a href="#c-broker-sim">Broker Simulator</a></li>
         <li><a href="#c-commission">Realism (Slippage/Fees)</a></li>
-        <li><a href="#c-broker">Brokers</a></li>
       </ul>
     </aside>
     <div class="doc-content">
@@ -597,9 +598,9 @@ c.SetCommission(engine.FuturesCommission{Margin: 2000, Multiplier: 50})
       <ul>
         <li class="sidebar-label">Indicators</li>
         <li><a href="#ind-overview">Overview</a></li>
-        <li><a href="#ind-trend">Trend</a></li>
-        <li><a href="#ind-momentum">Momentum</a></li>
-        <li><a href="#ind-volatility">Volatility</a></li>
+        <li><a href="#ind-trend">Trend Indicators</a></li>
+        <li><a href="#ind-momentum">Momentum / Oscillators</a></li>
+        <li><a href="#ind-volatility">Volatility Indicators</a></li>
       </ul>
     </aside>
     <div class="doc-content">
@@ -693,7 +694,7 @@ mid   := bb.Mid().Get(0)</code></pre></div>
         <li><a href="#az-sharpe">Sharpe Ratio</a></li>
         <li><a href="#az-dd">DrawDown</a></li>
         <li><a href="#az-trade">Trade Analyzer</a></li>
-        <li><a href="#az-sqn">SQN</a></li>
+        <li><a href="#az-sqn">SQN (System Quality Number)</a></li>
       </ul>
     </aside>
     <div class="doc-content">
@@ -774,12 +775,12 @@ mid   := bb.Mid().Get(0)</code></pre></div>
       <ul>
         <li class="sidebar-label">Live Feeds</li>
         <li><a href="#lf-arch">Architecture</a></li>
-        <li><a href="#lf-ws">WebSocket</a></li>
-        <li><a href="#lf-rest">REST API</a></li>
-        <li><a href="#lf-nats">NATS</a></li>
+        <li><a href="#lf-ws">WebSocket Feed</a></li>
+        <li><a href="#lf-rest">REST API Feed</a></li>
+        <li><a href="#lf-nats">NATS Feed</a></li>
         <li><a href="#lf-redis">Redis Streams</a></li>
-        <li><a href="#lf-kafka">Kafka</a></li>
-        <li><a href="#lf-custom">Custom Parse</a></li>
+        <li><a href="#lf-kafka">Kafka Feed</a></li>
+        <li><a href="#lf-custom">Custom Bar Parsing</a></li>
       </ul>
     </aside>
     <div class="doc-content">
