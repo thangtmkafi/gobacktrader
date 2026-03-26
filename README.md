@@ -163,6 +163,23 @@ Data feeds (like <code>feeds.GenericCSVData</code>) supply the `core.DataSeries`
 
 Everything you write lives in a Strategy. The `Init(ctx)` method is strictly for declaring parameters and instantiating **Indicators**. The `Next()` method processes the logic bar-by-bar.
 
+### Schedulers & Timers
+
+You can schedule functions to execute at very specific times during the simulation (e.g., closing positions before weekend gaps):
+
+```go
+func (s *MyStrategy) Init(ctx *engine.StrategyContext) {
+    // Fire precisely at 15:55 PM
+    target := time.Date(2023, 11, 3, 15, 55, 0, 0, time.UTC)
+    ctx.AddTimer(target)
+}
+
+func (s *MyStrategy) NotifyTimer(timer *engine.Timer, t time.Time) {
+    s.ctx.Log("Timer Fired! Liquidating all positions.")
+    s.ctx.Close()
+}
+```
+
 ## Indicators
 
 Build indicators in `Init()` using `ctx.PreloadedData()`, then read values in `Next()`:
@@ -246,6 +263,23 @@ dd.Print()     // Max drawdown %, duration
 ta.Print()     // Win rate, profit factor, consec wins/losses
 sqn.Print()    // System Quality Number + grade
 ```
+
+## Plotting (Visualizer)
+
+Unlike Python's Matplotlib static image output, `gobacktrader` natively outputs **Standalone Interactive HTML Charts** using TradingView's Lightweight Charts library. Simply pass your results to the `plotter` package:
+
+```go
+import "github.com/thangtmkafi/gobacktrader/plotter"
+
+// Run strategy
+results, _ := c.Run()
+r := results[0]
+
+// Renders an interactive, scrollable browser chart
+plotter.Plot(c.Data(), r, "chart.html")
+```
+
+Open `chart.html` in any browser to see candlesticks, volumes, equity curves, and trade execution markers mapping your exact buy/sell points!
 
 ## From Backtest to Live Trade
 

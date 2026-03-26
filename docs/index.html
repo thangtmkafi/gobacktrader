@@ -444,6 +444,7 @@ results, err := c.RunLive(ctx)</code></pre></div>
         <li><code>Next()</code>: Called exactly once per bar. Trading logic lives here.</li>
         <li><code>NotifyOrder(*engine.Order)</code>: Fires when order states change (Submitted, Accepted, Filled, Canceled).</li>
         <li><code>NotifyTrade(*engine.Trade)</code>: Fires when a trade opens/closes (to track profit/loss).</li>
+        <li><code>NotifyTimer(*engine.Timer, time.Time)</code>: Fires when a specifically scheduled timer executes (set via <code>ctx.AddTimer(t)</code>).</li>
       </ol>
 
       <!-- Data Feeds -->
@@ -472,6 +473,7 @@ results, err := c.RunLive(ctx)</code></pre></div>
             <li>Feed advances (bar added to live DataSeries)</li>
             <li>Broker processes pending orders against the new bar's prices</li>
             <li>Equity snapshot is recorded to the equity curve</li>
+            <li>Strategy/Engine timers are evaluated and executed</li>
             <li>Order/trade notifications are delivered to strategies</li>
             <li>Strategy <code>Next()</code> is called</li>
           </ul>
@@ -492,6 +494,15 @@ results, err := c.RunLive(ctx)</code></pre></div>
         <li><code>analyzers.TradeAnalyzer</code>: Win/Loss ratios, streak tracking.</li>
         <li><code>analyzers.SQN</code>: System Quality Number.</li>
       </ul>
+
+      <h3 id="c-plot">Plotting (Chart Visualizer)</h3>
+      <p>Instead of static Matplotlib images from Python, gobacktrader natively constructs highly interactive HTML charts leveraging TradingView's Lightweight Charts.</p>
+      <div class="code-block"><div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>plot.go</span></div>
+<pre><code>import "github.com/thangtmkafi/gobacktrader/plotter"
+
+results, _ := c.Run()
+plotter.Plot(c.Data(), results[0], "chart.html")
+</code></pre></div>
 
       <!-- Sizers -->
       <h2 id="c-sizing">Position Sizing (Sizers)</h2>

@@ -46,6 +46,15 @@ type NotifyTrader interface{ NotifyTrade(trade *Trade) }
 // CashValueNotifier receives cash/value each bar.
 type CashValueNotifier interface{ NotifyCashValue(cash, value float64) }
 
+// NotifyTimer receives scheduled timer notifications.
+type NotifyTimer interface{ NotifyTimer(timer *Timer, t time.Time) }
+
+// Timer represents a scheduled event.
+type Timer struct {
+	ID   int
+	When time.Time
+}
+
 // ─── StrategyContext ───────────────────────────────────────────────────────
 
 // StrategyContext is handed to the strategy in Init and provides
@@ -58,7 +67,9 @@ type StrategyContext struct {
 	// Use these to construct indicators in Init(); use Datas in Next().
 	PreloadedDatas []*core.DataSeries
 
-	broker BrokerBase
+	broker  BrokerBase
+	timers  []*Timer
+	nextTID int
 }
 
 // Data returns the first (primary) live data feed.
@@ -96,6 +107,32 @@ func (ctx *StrategyContext) GetOrdersOpen() []*Order { return ctx.broker.GetOrde
 
 // AddCash dynamically adds (or withdraws if negative) cash during the backtest.
 func (ctx *StrategyContext) AddCash(delta float64) { ctx.broker.AddCash(delta) }
+
+// AddTimer schedules a one-off timer to trigger at or after the given time.
+func (ctx *StrategyContext) AddTimer(when time.Time) *Timer {
+	t := &Timer{ID: ctx.nextTID, When: when}
+	ctx.nextTID++
+	ctx.timers = append(ctx.timers, t)
+	return t
+}
+
+// popTriggeredTimers returns and removes any timers that should trigger at 'now'.
+func (ctx *StrategyContext) popTriggeredTimers(now time.Time) []*Timer {
+	if len(ctx.timers) == 0 {
+		return nil
+	}
+	var triggered []*Timer
+	var remaining []*Timer
+	for _, t := range ctx.timers {
+		if !now.Before(t.When) { // now >= t.When
+			triggered = append(triggered, t)
+		} else {
+			remaining = append(remaining, t)
+		}
+	}
+	ctx.timers = remaining
+	return triggered
+}
 
 // ─── Order helpers ─────────────────────────────────────────────────────────
 

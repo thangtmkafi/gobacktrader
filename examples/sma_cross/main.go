@@ -15,6 +15,7 @@ import (
 	"github.com/thangtmkafi/gobacktrader/engine"
 	"github.com/thangtmkafi/gobacktrader/feeds"
 	"github.com/thangtmkafi/gobacktrader/indicators"
+	"github.com/thangtmkafi/gobacktrader/plotter"
 )
 
 // ─── Strategy ────────────────────────────────────────────────────────────────
@@ -96,7 +97,10 @@ func main() {
 	c := engine.NewCerebro()
 	c.SetCash(10_000)
 	c.SetCommission(engine.PercentCommission{Percent: 0.001})
-	c.AddCSV(feeds.DefaultYahooConfig(csvPath))
+	csvCfg := feeds.DefaultYahooConfig(csvPath)
+	feed := feeds.NewCSVFeed(csvCfg)
+	c.AddData(feed)
+	
 	c.AddStrategy(func() engine.Strategy { return &SMACrossStrategy{} })
 
 	results, err := c.Run()
@@ -120,5 +124,13 @@ func main() {
 		}
 		fmt.Printf("  Trade %d [%s]  Entry: %.2f  Exit: %.2f  NetPnL: %.2f\n",
 			i+1, status, t.EntryPrice, t.ExitPrice, t.PnLComm)
+	}
+
+	// Generate interactive chart
+	err = plotter.Plot(feed.Data(), r, "chart.html")
+	if err != nil {
+		fmt.Printf("Error generating plot: %v\n", err)
+	} else {
+		fmt.Printf("\nChart successfully generated at chart.html\n")
 	}
 }

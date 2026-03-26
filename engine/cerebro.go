@@ -40,6 +40,8 @@ type RunResult struct {
 	Trades       []*Trade
 	// EquityCurve holds the total portfolio value after every bar (oldest → newest).
 	EquityCurve []float64
+	// CashCurve holds the available cash after every bar.
+	CashCurve []float64
 }
 
 // Analyzer is implemented by any post-run performance analysis component.
@@ -158,6 +160,7 @@ func (c *Cerebro) Run() ([]*RunResult, error) {
 
 	startingCash := c.broker.GetCash()
 	var equityCurve []float64
+	var cashCurve []float64
 
 	// 4. Main backtest loop
 	for {
@@ -178,8 +181,9 @@ func (c *Cerebro) Run() ([]*RunResult, error) {
 		// Let broker process pending orders against the new bar
 		c.broker.Next(datas)
 
-		// Record equity after broker processes this bar
+		// Record Cash and Value after broker processes this bar
 		equityCurve = append(equityCurve, c.broker.GetValue(datas))
+		cashCurve = append(cashCurve, c.broker.GetCash())
 
 		// Drain order/trade notifications and deliver to strategies
 		orders, trades := c.broker.DrainNotifications()
@@ -198,6 +202,19 @@ func (c *Cerebro) Run() ([]*RunResult, error) {
 			}
 			if cv, ok := s.(CashValueNotifier); ok {
 				cv.NotifyCashValue(cash, value)
+			}
+		}
+
+		// Evaluate and deliver timers
+		now := datas[0].Bar().DateTime
+		triggeredTimers := ctx.popTriggeredTimers(now)
+		if len(triggeredTimers) > 0 {
+			for _, s := range strategies {
+				if nt, ok := s.(NotifyTimer); ok {
+					for _, t := range triggeredTimers {
+						nt.NotifyTimer(t, now)
+					}
+				}
 			}
 		}
 
@@ -222,6 +239,7 @@ func (c *Cerebro) Run() ([]*RunResult, error) {
 			FinalValue:   c.broker.GetValue(datas),
 			Trades:       c.broker.GetTrades(),
 			EquityCurve:  equityCurve,
+			CashCurve:    cashCurve,
 		})
 	}
 
@@ -301,6 +319,7 @@ func (c *Cerebro) RunLive(ctx context.Context) ([]*RunResult, error) {
 
 	startingCash := c.broker.GetCash()
 	var equityCurve []float64
+	var cashCurve []float64
 
 	// 5. Main live loop — same as backtest but Next() blocks
 	for {
@@ -319,6 +338,7 @@ func (c *Cerebro) RunLive(ctx context.Context) ([]*RunResult, error) {
 
 		c.broker.Next(datas)
 		equityCurve = append(equityCurve, c.broker.GetValue(datas))
+		cashCurve = append(cashCurve, c.broker.GetCash())
 
 		orders, trades := c.broker.DrainNotifications()
 		for _, s := range strategies {
@@ -330,6 +350,19 @@ func (c *Cerebro) RunLive(ctx context.Context) ([]*RunResult, error) {
 			if nt, ok := s.(NotifyTrader); ok {
 				for _, t := range trades {
 					nt.NotifyTrade(t)
+				}
+			}
+		}
+
+		// Evaluate and deliver timers
+		now := datas[0].Bar().DateTime
+		triggeredTimers := sctx.popTriggeredTimers(now)
+		if len(triggeredTimers) > 0 {
+			for _, s := range strategies {
+				if nt, ok := s.(NotifyTimer); ok {
+					for _, t := range triggeredTimers {
+						nt.NotifyTimer(t, now)
+					}
 				}
 			}
 		}
@@ -352,6 +385,7 @@ func (c *Cerebro) RunLive(ctx context.Context) ([]*RunResult, error) {
 			FinalValue:   c.broker.GetValue(datas),
 			Trades:       c.broker.GetTrades(),
 			EquityCurve:  equityCurve,
+			CashCurve:    cashCurve,
 		})
 	}
 
